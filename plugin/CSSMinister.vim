@@ -15,7 +15,7 @@
 
 " Script init stuff {{{1
 if exists("g:CSSMinister_version") || &cp
-    finish
+    "finish
 endif
 
 let g:CSSMinister_version = "0.2.0"
@@ -27,7 +27,7 @@ let s:RGB_DISCOVERY = '\v\crgb\(\d+.*,\s*\d+.*,\s*\d+.*\);?'
 let s:HSL           = '\vhsl\((-?\d+),\s*(\d\%|[1-9][0-9]\%|100\%),\s*(\d\%|[1-9][0-9]\%|100\%)\);?'
 let s:HEX           = '\v([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})'
 let s:HEX_DISCOVERY = '\v#[0-9a-fA-F]{3,6}'
-let s:W3C_COLOR_RX  = '\v\c(black|silver|gray|white|maroon|red|purple|fuchsia|green|lime|olive|yellow|navy|blue|teal|aqua)[^-]'
+let s:W3C_COLOR_RX  = '\v\c(black|silver|gray|white(-space)@!|maroon|red|purple|fuchsia|green|lime|olive|yellow|navy|blue|teal|aqua)'
 
 let s:W3C_COLORS = { 'black':   '#000000',
 		   \ 'silver':  '#C0C0C0',
