@@ -184,8 +184,9 @@ function! s:IsHex(color)
 endfunction
 
 function! s:IsKeyword(color)
-    return has_key(s:W3C_COLOR, a:color)
+    return has_key(s:W3C_COLORS, a:color)
 endfunction
+
 
 " -----------------------------------------------------------------------------
 " Color to RGB conversion {{{1
