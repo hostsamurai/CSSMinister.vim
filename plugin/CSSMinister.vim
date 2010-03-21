@@ -15,10 +15,10 @@
 
 " Script init stuff {{{1
 if exists("g:CSSMinister_version") || &cp
-    "finish
+    finish
 endif
 
-let g:CSSMinister_version = "0.2.0"
+let g:CSSMinister_version = "0.2.1"
 
 " Constants {{{1
 let s:RGB_NUM_RX    = '\v\crgb\(([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5])\);?'
@@ -45,6 +45,7 @@ let s:W3C_COLORS = { 'black':   '#000000',
 		   \ 'blue':    '#0000FF',
 		   \ 'teal':    '#008080',
 		   \ 'aqua':    '#00FFFF' }
+
 
 let g:CSSMinisterCreateMappings = 1
 
