@@ -83,6 +83,8 @@ Converts all HTML4 color keyword values to their HSL counterparts.
 ==============================================================================
 4.Changelog                                            *CSSMinister-changelog*
 
+0.2.1
+    - Fixed broken color keyword regex
 0.2.0
     - convert any HTML4 color keyword to its hexadecimal/RGB/HSL equivalent
 
