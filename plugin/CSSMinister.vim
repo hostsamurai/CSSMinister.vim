@@ -8,7 +8,6 @@
 " License:       GPL (see http://www.gnu.org/licenses/gpl.txt)
 "
 " TODO: visual mode conversions 
-" TODO: rgba and hsla conversions
 " TODO: fix slow execution time when converting one color at a time
 " TODO: alt. delimeters for mappings
 " =============================================================================
@@ -24,6 +23,7 @@ let g:CSSMinister_version = "0.2.1"
 let s:RGB_NUM_RX    = '\v\crgb\(([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5])\);?'
 let s:RGB_PERC_RX   = '\v\crgb\((\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0-9]\%|100\%)\);?'
 let s:RGB_DISCOVERY = '\v\crgb\(\d+.*,\s*\d+.*,\s*\d+.*\);?'
+let s:RGBA          = '\v\crgba\(%(%(([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5]))|(%(\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0-9]\%|100\%))),\s*(\d|0\.\d+)\);?'
 let s:HSL           = '\vhsl\((-?\d+),\s*(\d\%|[1-9][0-9]\%|100\%),\s*(\d\%|[1-9][0-9]\%|100\%)\);?'
 let s:HSLA          = '\vhsla\((-?\d+),\s*(\d\%|[1-9][0-9]\%|100\%),\s*(\d\%|[1-9][0-9]\%|100\%),\s*(\d|0\.\d+)\);?'
 let s:HEX           = '\v([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})'
@@ -246,7 +246,7 @@ function! MinisterConvert(from, to, ...)
     if a:from == a:to | return | endif
     let all = a:0 >= 1 ? a:1 : ''
 
-    if a:from =~ '\vhex|rgb|hsl|keyword'
+    if a:from =~ '\vhex|rgb|rgba|hsl|hsla|keyword'
         if all == 'all'
             call s:ReplaceAll(a:from, a:to)
         else 
@@ -259,7 +259,10 @@ endfunction
 " -----------------------------------------------------------------------------
 " ToRGB: Converts colors in hex or hsl format to rgb
 function! ToRGB(from_format)
-    if s:IsHex(a:from_format)
+    if s:IsRGBA(a:from_format)
+        " TODO: make sure to include a trailing ; if it has one?
+        return substitute(a:from_format, s:RGBA, '\="rgb(" . submatch(1) . ", ", submatch(2) . ", " . submatch(3) . ")"', '')
+    elseif s:IsHex(a:from_format)
         return s:HexToRGB(a:from_format)
     elseif s:IsHSL(a:from_format)
         return s:HSLToRGB(a:from_format)
@@ -270,9 +273,32 @@ endfunction
 
 
 " -----------------------------------------------------------------------------
+" ToRGBA: Converts colors in hex, hsl, hsla, and rgb format to rgba
+function! ToRGBA(from_format)
+    if s:IsRGB(a:from_format)
+        return s:OutputRGBA(a:from_format)
+    elseif s:IsHSLA(a:from_format)
+        return s:HSLAToRGBA(a:from_format)
+    else
+        if s:IsHex(a:from_format)
+            let rgb = s:HexToRGB(a:from_format)
+        elseif s:IsHSL(a:from_format)
+            let rgb = s:HSLToRGB(a:from_format)
+        elseif s:IsKeyword(a:from_format)
+            let rgb = s:HexToRGB(ToHex(a:from_format))
+        endif
+        return s:OutputRGBA(rgb)
+    endif
+endfunction
+
+
+" -----------------------------------------------------------------------------
 " ToHSL: Converts colors in hex or rgb format to hsl
 function! ToHSL(from_format)
-    if s:IsHex(a:from_format)
+    if s:IsHSLA(a:from_format)
+        " TODO: make sure to include a trailing ';' if it has one?
+        return substitute(a:from_format, s:HSLA, '\="hsl(" . submatch(1) . ", " . submatch(2) . ", " . submatch(3) . ")"', '')
+    elseif s:IsHex(a:from_format)
         let rgb = s:HexToRGB(a:from_format)
         return s:RGBToHSL(rgb)
     elseif s:IsRGB(a:from_format)
@@ -287,25 +313,26 @@ endfunction
 " -----------------------------------------------------------------------------
 " ToHSLA: Converts colors in hex, rgb, rgba, and hsl format to hsla
 function! ToHSLA(from_format)
-    if s:IsHex(a:from_format)
-        let rgb = s:HexToRGB(a:from_format)
-        let temp_hsl = s:RGBToHSL(rgb)
-        return s:OutputHSLA(temp_hsl)
-    elseif s:IsRGB(a:from_format)
-        let hsl = s:RGBToHSL(a:from_format)
-        return s:OutputHSLA(hsl)
-    elseif s:IsHSL(a:from_format)
+    let hsl = ''
+    if s:IsHSL(a:from_format)
         return s:OutputHSLA(a:from_format)
-    elseif s:IsKeyword(a:from_format)
-        let rgb = s:HexToRGB(ToHex(a:from_format))
-        let temp_hsl = s:RGBToHSL(rgb)
-        return s:OutputHSLA(temp_hsl)
+    elseif s:IsRGBA(a:from_format)
+        return s:RGBAToHSLA(a:from_format)
+    else
+        if s:IsHex(a:from_format)
+            let hsl = s:RGBToHSL(s:HexToRGB(a:from_format))
+        elseif s:IsRGB(a:from_format)
+            let hsl = s:RGBToHSL(a:from_format)
+        elseif s:IsKeyword(a:from_format)
+            let hsl = s:RGBToHSL(s:HexToRGB(ToHex(a:from_format)))
+        endif
+        return s:OutputHSLA(hsl)
     endif
 endfunction
 
 
 " -----------------------------------------------------------------------------
-" ToHex: Converts colors in rgb or hsl format to hex
+" ToHex: Converts colors in rgb(a) or hsl(a) format to hex
 function! ToHex(from_format)
     if s:IsRGB(a:from_format)
         return s:RGBToHex(a:from_format)
@@ -327,8 +354,16 @@ function! s:IsRGB(color)
     return a:color =~ s:RGB_NUM_RX || a:color =~ s:RGB_PERC_RX
 endfunction
 
+function! s:IsRGBA(color)
+    return a:color =~ s:RGBA
+endfunction
+
 function! s:IsHSL(color)
     return a:color =~ s:HSL
+endfunction
+
+function! s:IsHSLA(color)
+    return a:color =~ s:HSLA
 endfunction
 
 function! s:IsHex(color)
@@ -382,6 +417,15 @@ endfunction
 
 
 " -----------------------------------------------------------------------------
+" HSLAToRGBA:
+function! s:HSLAToRGBA(hsla)
+    let hsl = substitute(a:hsla, s:HSLA, '\="hsl(" . submatch(1) . "," . submatch(2) . "," . submatch(3) . ")"', '')
+    let opacity = substitute(matchstr(a:hsla, '\v(\d|0\.\d+)\);?'), '\v\);?', '', '')
+    return s:OutputRGBA(s:HSLToRGB(hsl), opacity)
+endfunction
+
+
+" -----------------------------------------------------------------------------
 " s:Hue2RGB: http://www.easyrgb.com/index.php?X=MATH&H=19#text19 
 function! s:Hue2RGB(v1, v2, vH)
     let H = a:vH
@@ -393,8 +437,23 @@ function! s:Hue2RGB(v1, v2, vH)
     return a:v1
 endfunction
 
+
+" -----------------------------------------------------------------------------
+"  s:OutputRGB: Outputs a format string in rgb format.
 function! s:OutputRGB(r, g, b)
     return 'rgb(' . printf('%d', '0x' . a:r) . ', ' . printf('%d', '0x' . a:g) . ', ' . printf('%d', '0x' . a:b) . ')'
+endfunction
+
+
+" -----------------------------------------------------------------------------
+" s:OutputRGBA: Turns a rgb formatted string to rgba format
+" Args:
+"   rgb: A string in rgb format
+"   {opacity}: Preserves opacity when converting from HSLA values
+function! s:OutputRGBA(rgb, ...)
+    let opacity = a:0 == 1 ? a:1 : 1
+    let temp_rgb = matchstr(a:rgb, '\vrgb\(.*\)@=') . ', ' . opacity . ');'
+    return substitute(temp_rgb, '\vrgb', 'rgba', '')
 endfunction
 
 
@@ -402,12 +461,18 @@ endfunction
 " -----------------------------------------------------------------------------
 " s:RGBToHSL: http://www.easyrgb.com/index.php?X=MATH&H=18#text18
 " Args:
-"   rgb: A string representing a color in RGB format, i.e. 'hsl(0, 50%, 100%)'
+"   rgb: A string representing a color in RGB format, i.e. 'rgb(0, 0, 100)'
 function! s:RGBToHSL(rgb)
+    let temp_rgb = a:rgb
+    let is_rgba = s:IsRGBA(temp_rgb)
+    if is_rgba
+        let temp_rgb = substitute(temp_rgb, s:RGBA, '\="rgb(" . submatch(1) . "," . submatch(2) . "," . submatch(3) . ")"', '')
+    endif
+
     " normalize rgb values - they can be in either the range 0-255 or 0-100%
-    let norm_rgb = matchlist(a:rgb, s:RGB_PERC_RX)
+    let norm_rgb = matchlist(temp_rgb, s:RGB_PERC_RX)
     if empty(norm_rgb)
-        let norm_rgb = matchlist(a:rgb, s:RGB_NUM_RX)
+        let norm_rgb = matchlist(temp_rgb, s:RGB_NUM_RX)
         let norm_rgb = map(norm_rgb, 'str2nr(v:val)')
     else 
         " strip off the %'s
@@ -454,13 +519,24 @@ endfunction
 
 
 " -----------------------------------------------------------------------------
+" s:RGBAToHSLA: Converts an RGBA color value to HSLA
+" Args:
+"   rgba: String representing a RGBA color
+function! s:RGBAToHSLA(rgba)
+    let rgb = substitute(a:rgba, s:RGBA, '\="rgb(" . submatch(1) . "," . submatch(2) . "," . submatch(3) . ")"', '')
+    let opacity = substitute(matchstr(a:rgba, '\v(\d|0\.\d+)\);?'), '\v\);?', '', '')
+    return s:OutputHSLA(s:RGBToHSL(rgb), opacity)
+endfunction
+
+
+" -----------------------------------------------------------------------------
 " s:OutputHSL: Outputs a formatted string in hsl format.
 " Args:
 "   hsl: Dictionary with h, s, l keys. Their values are normalized in order to
 "        return a valid formatted string. 
 function! s:OutputHSL(hsl)
     let temp_hsl = a:hsl
-    let temp_hsl.h = float2nr( temp_hsl.h * 360.0 )
+    let temp_hsl.h = float2nr(round(temp_hsl.h * 360.0))
     let [temp_hsl.s, temp_hsl.l] = map([temp_hsl.s, temp_hsl.l], "float2nr(round(v:val * 100)) . '%'")
     return 'hsl(' . temp_hsl.h . ', ' . temp_hsl.s . ', ' . temp_hsl.l . ')'
 endfunction
@@ -469,10 +545,12 @@ endfunction
 " -----------------------------------------------------------------------------
 " s:OutputHSLA: Turns a hsl formatted string to hsla
 " Args:
-"   hsl: A string in hsla format
-function! s:OutputHSLA(hsl)
-    let temp_hsl = matchstr(a:hsl, '\vhsl\(.*\)@=')
-    return temp_hsl . ', 1);'
+"   hsl: A string in hsl format
+"   {opacity}: Preserves opacity value for converting from RGBA
+function! s:OutputHSLA(hsl, ...)
+    let opacity = a:0 == 1 ? a:1 : 1
+    let temp_hsl = matchstr(a:hsl, '\vhsl\(.*\)@=') . ', ' . opacity . ');'
+    return substitute(temp_hsl, '\vhsl', 'hsla', '')
 endfunction
 
 
@@ -558,6 +636,7 @@ function! s:ReplaceNext(from, to)
     let line = getline('.')
     let convert = s:ReplacementPairings(a:from, a:to)
 
+    " TODO: pass in the value of the color format we're converting from
     let line = substitute(line, convert.from_rx, '\=To' . convert.to . '(submatch(0))', '')
 
     call setline(lineNum, line)
