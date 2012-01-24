@@ -1,21 +1,20 @@
 " =============================================================================
 " File:          CSSMinister.vim
-" Maintainer:    Luis Gonzalez <kuroi_kenshi96 at yahoo dot com>
+" Maintainer:    Lou Gonzalez <kuroi_kenshi96 at yahoo dot com>
 " Description:   Easy modification of colors in CSS stylesheets. Change colors
 "                from one format to another. Currently supported formats include
 "                hex, RGB and HSL.
-" Last Modified: January 22, 2012
+" Last Modified: January 23, 2012
 " License:       GPL (see http://www.gnu.org/licenses/gpl.txt)
 "
 " TODO: visual mode conversions
 " TODO: fix slow execution time when converting one color at a time
-" TODO: prompt before converting all colors at once
 " =============================================================================
 
 " Script init stuff {{{1
-if exists("g:CSSMinister_version") || &cp
-    finish
-endif
+"if exists("g:CSSMinister_version") || &cp
+    "finish
+"endif
 
 let g:CSSMinister_version = "0.2.1"
 
@@ -248,7 +247,9 @@ function! MinisterConvert(from, to, ...)
 
     if a:from =~ '\vhex|rgb|rgba|hsl|hsla|keyword'
         if all == 'all'
-            call s:ReplaceAll(a:from, a:to)
+            if input("Convert all " . toupper(a:from) . " colors to " . toupper(a:to) . " format? (y/n) ") == "y"
+                call s:ReplaceAll(a:from, a:to)
+            endif
         else
             call s:ReplaceNext(a:from, a:to)
         endif
@@ -304,7 +305,11 @@ function! ToHSL(from_format)
     if format == 'HSLA'
         return substitute(a:from_format, s:HSLA, '\="hsl(" . submatch(1) . ", " . submatch(2) . ", " . submatch(3) . ")"', '')
     elseif format == 'Keyword'
-        let from = ToHex(a:from_format)
+        let from = s:HexToRGB(s:KeywordToHex(a:from_format))
+        let format = 'RGB'
+    elseif format == 'Hex'
+        let from = s:HexToRGB(a:from_format)
+        let format = 'RGB'
     endif
 
     return s:{format}ToHSL(from)
