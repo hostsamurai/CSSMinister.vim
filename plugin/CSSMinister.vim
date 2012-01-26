@@ -7,7 +7,6 @@
 " Last Modified: January 23, 2012
 " License:       GPL (see http://www.gnu.org/licenses/gpl.txt)
 "
-" TODO: visual mode conversions
 " TODO: fix slow execution time when converting one color at a time
 " =============================================================================
 
@@ -239,19 +238,19 @@ noremap <silent> <script> <Plug>CSSMinisterKeywordToHSLAll :call MinisterConvert
 " Args:
 "   from:  format we're converting from
 "   to:    format we're converting to
-"   {all}: specify whether to convert the next matching color or all colors in
-"          buffer
-function! MinisterConvert(from, to, ...)
+"   {all}: if set to 'all', it'll convert all colors in buffer to the
+"          specified format
+function! MinisterConvert(from, to, ...) range
     if a:from == a:to | return | endif
     let all = a:0 >= 1 ? a:1 : ''
 
     if a:from =~ '\vhex|rgb|rgba|hsl|hsla|keyword'
         if all == 'all'
             if input("Convert all " . toupper(a:from) . " colors to " . toupper(a:to) . " format? (y/n) ") == "y"
-                call s:ReplaceAll(a:from, a:to)
+                call s:ReplaceAll(a:from, a:to, range)
             endif
         else
-            call s:ReplaceNext(a:from, a:to)
+            exe a:firstline . ',' . a:lastline . 'call s:ReplaceNext(a:from, a:to)'
         endif
     endif
 endfunction
@@ -624,8 +623,8 @@ endfunction
 " s:ReplaceAll: Replaces all colors in the current buffer to the requested
 "               color format.
 " Args:
-"   from: the color format we're converting from
-"   to:   the color format we're converting to
+"   from:  the color format we're converting from
+"   to:    the color format we're converting to
 function! s:ReplaceAll(from, to)
     let lines = getbufline('%', 1, '$')
     let regex = ''
