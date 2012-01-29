@@ -3,10 +3,11 @@
 " Maintainer:    Lou Gonzalez <kuroi_kenshi96 at yahoo dot com>
 " Description:   Easy modification of colors in CSS stylesheets. Change colors
 "                from one format to another. Currently supported formats include
-"                hex, RGB and HSL.
+"                hex, RGB(A) and HSL(A).
 " Last Modified: January 23, 2012
 " License:       GPL (see http://www.gnu.org/licenses/gpl.txt)
 "
+" TODO: add commands and get rid of mappings
 " TODO: fix slow execution time when converting one color at a time
 " =============================================================================
 
@@ -22,8 +23,8 @@ let s:RGB_NUM_RX    = '\v\crgb\(([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0
 let s:RGB_PERC_RX   = '\v\crgb\((\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0-9]\%|100\%)\);?'
 let s:RGB_DISCOVERY = '\v\crgb\(\d+.*,\s*\d+.*,\s*\d+.*\);?'
 let s:RGBA          = '\v\crgba\(%(%(([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5]))|(%(\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0-9]\%|100\%))),\s*(\d|0\.\d+)\);?'
-let s:HSL           = '\vhsl\((-?\d+),\s*(\d\%|[1-9][0-9]\%|100\%),\s*(\d\%|[1-9][0-9]\%|100\%)\);?'
-let s:HSLA          = '\vhsla\((-?\d+),\s*(\d\%|[1-9][0-9]\%|100\%),\s*(\d\%|[1-9][0-9]\%|100\%),\s*(\d|0\.\d+)\);?'
+let s:HSL           = '\vhsl\((-?\d+),\s*(\d\%|[0]?[0-9][0-9]\%|100\%),\s*(\d\%|[0]?[0-9][0-9]\%|100\%)\);?'
+let s:HSLA          = '\vhsla\((-?\d+),\s*(\d\%|[0]?[0-9][0-9]\%|100\%),\s*(\d\%|[0]?[0-9][0-9]\%|100\%),\s*(\d|0\.\d+)\);?'
 let s:HEX           = '\v([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})'
 let s:HEX_DISCOVERY = '\v#[0-9a-fA-F]{3,6}'
 let s:W3C_COLOR_RX  = '\v\c(aliceblue|antiquewhite|aqua|aquamarine|azure|beige|bisque|black|blanchedalmond|blue|blueviolet|brown|burlywood|cadetblue|chartreuse|chocolate|coral|cornflowerblue|cornsilk|crimson|cyan|darkblue|darkcyan|darkgoldenrod|darkgray|darkgreen|darkgrey|darkkhaki|darkmagenta|darkolivegreen|darkorange|darkorchid|darkred|darksalmon|darkseagreen|darkslateblue|darkslategray|darkslategrey|darkturquoise|darkviolet|deeppink|deepskyblue|dimgray|dimgrey|dodgerblue|firebrick|floralwhite|forestgreen|fuchsia|gainsboro|ghostwhite|gold|goldenrod|gray|green|greenyellow|grey|honeydew|hotpink|indianred|indigo|ivory|khaki|lavender|lavenderblush|lawngreen|lemonchiffon|lightblue|lightcoral|lightcyan|lightgoldenrodyellow|lightgray|lightgreen|lightgrey|lightpink|lightsalmon|lightseagreen|lightskyblue|lightslategray|lightslategrey|lightsteelblue|lightyellow|lime|limegreen|linen|magenta|maroon|mediumaquamarine|mediumblue|mediumorchid|mediumpurple|mediumseagreen|mediumslateblue|mediumspringgreen|mediumturquoise|mediumvioletred|midnightblue|mintcream|mistyrose|moccasin|navajowhite|navy|oldlace|olive|olivedrab|orange|orangered|orchid|palegoldenrod|palegreen|paleturquoise|palevioletred|papayawhip|peachpuff|peru|pink|plum|powderblue|purple|red|rosybrown|royalblue|saddlebrown|salmon|sandybrown|seagreen|seashell|sienna|silver|skyblue|slateblue|slategray|slategrey|snow|springgreen|steelblue|tan|teal|thistle|tomato|turquoise|violet|wheat|white(-space)@!|whitesmoke|yellow|yellowgreen)'
