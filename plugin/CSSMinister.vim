@@ -3,7 +3,7 @@
 " Maintainer:    Lou Gonzalez <kuroi_kenshi96 at yahoo dot com>
 " Description:   Easy modification of colors in CSS stylesheets. Change colors
 "                from one format to another. Currently supported formats include
-"                hex, RGB(A) and HSL(A).
+"                hex, keyword, RGB(A) and HSL(A).
 " Last Modified: January 23, 2012
 " License:       GPL (see http://www.gnu.org/licenses/gpl.txt)
 "
@@ -19,12 +19,12 @@
 let g:CSSMinister_version = "0.2.1"
 
 " Constants {{{1
-let s:RGB_NUM_RX    = '\v\crgb\(([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5])\);?'
-let s:RGB_PERC_RX   = '\v\crgb\((\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0-9]\%|100\%)\);?'
-let s:RGB_DISCOVERY = '\v\crgb\(\d+.*,\s*\d+.*,\s*\d+.*\);?'
-let s:RGBA          = '\v\crgba\(%(%(([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5]))|(%(\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0-9]\%|100\%))),\s*(\d|0\.\d+)\);?'
-let s:HSL           = '\vhsl\((-?\d+),\s*(\d\%|[0]?[0-9][0-9]\%|100\%),\s*(\d\%|[0]?[0-9][0-9]\%|100\%)\);?'
-let s:HSLA          = '\vhsla\((-?\d+),\s*(\d\%|[0]?[0-9][0-9]\%|100\%),\s*(\d\%|[0]?[0-9][0-9]\%|100\%),\s*(\d|0\.\d+)\);?'
+let s:RGB_NUM_RX    = '\v\crgb\(([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5])\)'
+let s:RGB_PERC_RX   = '\v\crgb\((\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0-9]\%|100\%)\)'
+let s:RGB_DISCOVERY = '\v\crgb\(\d+.*,\s*\d+.*,\s*\d+.*\)'
+let s:RGBA          = '\v\crgba\(%(%(([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5]))|(%(\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0-9]\%|100\%))),\s*(\d|0\.\d+)\)'
+let s:HSL           = '\vhsl\((-?\d+),\s*(\d\%|[0]?[0-9][0-9]\%|100\%),\s*(\d\%|[0]?[0-9][0-9]\%|100\%)\)'
+let s:HSLA          = '\vhsla\((-?\d+),\s*(\d\%|[0]?[0-9][0-9]\%|100\%),\s*(\d\%|[0]?[0-9][0-9]\%|100\%),\s*(\d|0\.\d+)\)'
 let s:HEX           = '\v([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})'
 let s:HEX_DISCOVERY = '\v#[0-9a-fA-F]{3,6}'
 let s:W3C_COLOR_RX  = '\v\c(aliceblue|antiquewhite|aqua|aquamarine|azure|beige|bisque|black|blanchedalmond|blue|blueviolet|brown|burlywood|cadetblue|chartreuse|chocolate|coral|cornflowerblue|cornsilk|crimson|cyan|darkblue|darkcyan|darkgoldenrod|darkgray|darkgreen|darkgrey|darkkhaki|darkmagenta|darkolivegreen|darkorange|darkorchid|darkred|darksalmon|darkseagreen|darkslateblue|darkslategray|darkslategrey|darkturquoise|darkviolet|deeppink|deepskyblue|dimgray|dimgrey|dodgerblue|firebrick|floralwhite|forestgreen|fuchsia|gainsboro|ghostwhite|gold|goldenrod|gray|green|greenyellow|grey|honeydew|hotpink|indianred|indigo|ivory|khaki|lavender|lavenderblush|lawngreen|lemonchiffon|lightblue|lightcoral|lightcyan|lightgoldenrodyellow|lightgray|lightgreen|lightgrey|lightpink|lightsalmon|lightseagreen|lightskyblue|lightslategray|lightslategrey|lightsteelblue|lightyellow|lime|limegreen|linen|magenta|maroon|mediumaquamarine|mediumblue|mediumorchid|mediumpurple|mediumseagreen|mediumslateblue|mediumspringgreen|mediumturquoise|mediumvioletred|midnightblue|mintcream|mistyrose|moccasin|navajowhite|navy|oldlace|olive|olivedrab|orange|orangered|orchid|palegoldenrod|palegreen|paleturquoise|palevioletred|papayawhip|peachpuff|peru|pink|plum|powderblue|purple|red|rosybrown|royalblue|saddlebrown|salmon|sandybrown|seagreen|seashell|sienna|silver|skyblue|slateblue|slategray|slategrey|snow|springgreen|steelblue|tan|teal|thistle|tomato|turquoise|violet|wheat|white(-space)@!|whitesmoke|yellow|yellowgreen)'
@@ -233,42 +233,70 @@ noremap <silent> <script> <Plug>CSSMinisterKeywordToHSL    :call MinisterConvert
 noremap <silent> <script> <Plug>CSSMinisterKeywordToHSLAll :call MinisterConvert('keyword', 'hsl', 'all')<CR>
 "}}}2
 
+" Commands {{{2
+com! -range ToHex <line1>,<line2>call MinisterConvert('Hex')
+com! -nargs=1 -range=% ToHexAll <line1>,<line2>call MinisterConvertAll(<q-args>, 'Hex')
+
+com!  -range ToRGB <line1>,<line2>call MinisterConvert('RGB')
+com! -nargs=1 -range=% ToRGBAll <line1>,<line2>call MinisterConvertAll(<q-args>, 'RGB')
+
+com! -range ToRGBA <line1>,<line2>call MinisterConvert('RGBA')
+com! -nargs=1 -range=% ToRGBAAll <line1>,<line2>call MinisterConvertAll(<q-args>, 'RGBA')
+
+com! -range ToHSL <line1>,<line2>call MinisterConvert('HSL')
+com! -nargs=1 -range=% ToHSLAll <line1>,<line2>call MinisterConvertAll(<q-args>, 'HSL')
+
+com! -range ToHSLA <line1>,<line2>call MinisterConvert('HSLA')
+com! -nargs=1 -range=% ToHSLAAll <line1>,<line2>call MinisterConvertAll(<q-args>, 'HSLA')
+"}}}2
+
 
 " -----------------------------------------------------------------------------
-" Convert: Wrapper for all conversion functions
+" Convert: Conversion wrapper function for changing one color at a time
 " Args:
-"   from:  format we're converting from
-"   to:    format we're converting to
-"   {all}: if set to 'all', it'll convert all colors in buffer to the
-"          specified format
-function! MinisterConvert(from, to, ...) range
-    if a:from == a:to | return | endif
-    let all = a:0 >= 1 ? a:1 : ''
-
-    if a:from =~ '\vhex|rgb|rgba|hsl|hsla|keyword'
-        if all == 'all'
-            if input("Convert all " . toupper(a:from) . " colors to " . toupper(a:to) . " format? (y/n) ") == "y"
-                call s:ReplaceAll(a:from, a:to, range)
-            endif
-        else
-            exe a:firstline . ',' . a:lastline . 'call s:ReplaceNext(a:from, a:to)'
-        endif
+"   to: format we're converting to
+function! MinisterConvert(to) range
+    if a:to =~ '\vHex|RGB|RGBA|HSL|HSLA|Keyword'
+        exe a:firstline . ',' . a:lastline . 'call s:ReplaceNext(a:to)'
     endif
 endfunction
 
 
 " -----------------------------------------------------------------------------
-" ToRGB: Converts colors in hex or hsl format to rgb
-function! ToRGB(from_format)
-    let format = s:GetFormat(a:from_format)
-    let from = a:from_format
+" ConvertAll: Conversion wrapper function for changing all colors of one
+"             format to another
+" Args:
+"   from: the format of all colors we're converting from
+"   to:   the format to convert to
+function! MinisterConvertAll(from, to) range
+    let format = ''
+    let from = tolower(a:from)
+
+    if tolower(a:from) =~ '\vhex|RGBA?|HSLA?|Keyword'
+        if from == 'hex' | let format = 'Hex'
+        elseif from == 'keyword' | let format = 'Keyword'
+        elseif from =~ '\vrgba?' || from =~ '\vhsla?' | let format = toupper(from)
+        endif
+    endif
+
+    if input("Convert all " . toupper(from) . " colors to " . toupper(a:to) . " format? (y/n) ") == "y"
+        call s:ReplaceAll(format, a:to, a:firstline, a:lastline)
+    endif
+endfunction
+
+
+" -----------------------------------------------------------------------------
+" ToRGB: Converts colors to rgb format
+function! ToRGB(from_color, from_format)
+    let from = a:from_color
+    let format = a:from_format
 
     if format == 'RGBA'
-        return substitute(a:from_format, s:RGBA, '\="rgb(" . submatch(1) . ", " . submatch(2) . ", " . submatch(3) . ")"', '')
+        return substitute(from, s:RGBA, "rgb(" . submatch(1) . ", " . submatch(2) . ", " . submatch(3) . ")", '')
     elseif format == 'Keyword'
-        let from = ToHex(a:from_format)
+        let from = ToHex(a:from_color)
     elseif format == 'HSLA'
-        let from = s:HSLAToRGBA(a:from_format)
+        let from = s:HSLAToRGBA(a:from_color)
         return ToRGB(from)
     endif
 
@@ -277,17 +305,17 @@ endfunction
 
 
 " -----------------------------------------------------------------------------
-" ToRGBA: Converts colors in hex, hsl, hsla, and rgb format to rgba
-function! ToRGBA(from_format)
-    let format = s:GetFormat(a:from_format)
-    let from = a:from_format
+" ToRGBA: Converts colors to rgba format
+function! ToRGBA(from_color, from_format)
+    let format = a:from_format
+    let from = a:from_color
 
     if format == 'RGB'
         return s:OutputRGBA(from)
     elseif format == 'HSLA'
-        return s:HSLAToRGBA(a:from_format)
+        return s:HSLAToRGBA(a:from_color)
     elseif format == 'Keyword'
-        let from = s:HexToRGB(s:KeywordToHex(a:from_format))
+        let from = s:HexToRGB(s:KeywordToHex(a:from_color))
     elseif format =~ '\vHex|HSL'
         let from = s:{format}ToRGB(from)
     endif
@@ -297,18 +325,23 @@ endfunction
 
 
 " -----------------------------------------------------------------------------
-" ToHSL: Converts colors in hex or rgb format to hsl
-function! ToHSL(from_format)
-    let format = s:GetFormat(a:from_format)
-    let from = a:from_format
+" ToHSL: Converts colors in to hsl format
+function! ToHSL(from_color, from_format)
+    let format = a:from_format
+    let from = a:from_color
 
-    if format == 'HSLA'
-        return substitute(a:from_format, s:HSLA, '\="hsl(" . submatch(1) . ", " . submatch(2) . ", " . submatch(3) . ")"', '')
+    if format == 'HSL'
+        return a:from_color
+    elseif format == 'HSLA'
+        return substitute(a:from_color, s:HSLA, "hsl(" . submatch(1) . ", " . submatch(2) . ", " . submatch(3) . ")", '')
+    elseif format == 'RGBA'
+        let from = ToRGB(a:from_color, 'RGBA')
+        let format = 'RGB'
     elseif format == 'Keyword'
-        let from = s:HexToRGB(s:KeywordToHex(a:from_format))
+        let from = s:HexToRGB(s:KeywordToHex(a:from_color))
         let format = 'RGB'
     elseif format == 'Hex'
-        let from = s:HexToRGB(a:from_format)
+        let from = s:HexToRGB(a:from_color)
         let format = 'RGB'
     endif
 
@@ -317,21 +350,21 @@ endfunction
 
 
 " -----------------------------------------------------------------------------
-" ToHSLA: Converts colors in hex, rgb, rgba, and hsl format to hsla
-function! ToHSLA(from_format)
-    let format = s:GetFormat(a:from_format)
-    let from = a:from_format
+" ToHSLA: Converts colors to hsla format
+function! ToHSLA(from_color, from_format)
+    let format = a:from_format
+    let from = a:from_color
 
     if format == 'HSL'
-        return s:OutputHSLA(a:from_format)
+        return s:OutputHSLA(a:from_color)
     elseif format == 'RGBA'
-        return s:RGBAToHSLA(a:from_format)
+        return s:RGBAToHSLA(a:from_color)
     elseif format == 'Keyword'
-        let from = s:RGBToHSL(s:HexToRGB(s:KeywordToHex(a:from_format)))
+        let from = s:RGBToHSL(s:HexToRGB(s:KeywordToHex(a:from_color)))
     elseif format == 'Hex'
-        let from = s:RGBToHSL(s:HexToRGB(a:from_format))
+        let from = s:RGBToHSL(s:HexToRGB(a:from_color))
     elseif format == 'RGB'
-        let from = s:RGBToHSL(a:from_format)
+        let from = s:RGBToHSL(a:from_color)
     endif
 
     return s:OutputHSLA(from)
@@ -339,16 +372,16 @@ endfunction
 
 
 " -----------------------------------------------------------------------------
-" ToHex: Converts colors in rgb(a) or hsl(a) format to hex
-function! ToHex(from_format)
-    let format = s:GetFormat(a:from_format)
-    let from = a:from_format
+" ToHex: Converts colors to hex
+function! ToHex(from_color, from_format)
+    let format = a:from_format
+    let from = a:from_color
 
     if format == 'HSL'
-        let from = s:HSLToRGB(a:from_format)
+        let from = s:HSLToRGB(a:from_color)
         let format = 'RGB'
     elseif format =~ '\vRGBA|HSLA'
-        let from = ToRGB(a:from_format)
+        let from = ToRGB(a:from_color)
         let format = 'RGB'
     endif
 
@@ -448,8 +481,8 @@ endfunction
 " -----------------------------------------------------------------------------
 " HSLAToRGBA:
 function! s:HSLAToRGBA(hsla)
-    let hsl = substitute(a:hsla, s:HSLA, '\="hsl(" . submatch(1) . "," . submatch(2) . "," . submatch(3) . ")"', '')
-    let opacity = substitute(matchstr(a:hsla, '\v(\d|0\.\d+)\);?'), '\v\);?', '', '')
+    let hsl = substitute(a:hsla, s:HSLA, "hsl(" . submatch(1) . "," . submatch(2) . "," . submatch(3) . ")", '')
+    let opacity = substitute(matchstr(a:hsla, '\v(\d|0\.\d+)\);?'), '\v\)', '', '')
     return s:OutputRGBA(s:HSLToRGB(hsl), opacity)
 endfunction
 
@@ -481,7 +514,7 @@ endfunction
 "   {opacity}: Preserves opacity when converting from HSLA values
 function! s:OutputRGBA(rgb, ...)
     let opacity = a:0 == 1 ? a:1 : 1
-    let temp_rgb = matchstr(a:rgb, '\vrgb\(.*\)@=') . ', ' . opacity . ');'
+    let temp_rgb = matchstr(a:rgb, '\vrgb\(.*\)@=') . ', ' . opacity . ')'
     return substitute(temp_rgb, '\vrgb', 'rgba', '')
 endfunction
 
@@ -495,7 +528,7 @@ function! s:RGBToHSL(rgb)
     let temp_rgb = a:rgb
     let is_rgba = s:IsRGBA(temp_rgb)
     if is_rgba
-        let temp_rgb = substitute(temp_rgb, s:RGBA, '\="rgb(" . submatch(1) . "," . submatch(2) . "," . submatch(3) . ")"', '')
+        let temp_rgb = substitute(temp_rgb, s:RGBA, "rgb(" . submatch(1) . "," . submatch(2) . "," . submatch(3) . ")", '')
     endif
 
     " normalize rgb values - they can be in either the range 0-255 or 0-100%
@@ -552,7 +585,7 @@ endfunction
 " Args:
 "   rgba: String representing a RGBA color
 function! s:RGBAToHSLA(rgba)
-    let rgb = substitute(a:rgba, s:RGBA, '\="rgb(" . submatch(1) . "," . submatch(2) . "," . submatch(3) . ")"', '')
+    let rgb = substitute(a:rgba, s:RGBA, "rgb(" . submatch(1) . "," . submatch(2) . "," . submatch(3) . ")", '')
     let opacity = substitute(matchstr(a:rgba, '\v(\d|0\.\d+)\);?'), '\v\);?', '', '')
     return s:OutputHSLA(s:RGBToHSL(rgb), opacity)
 endfunction
@@ -578,7 +611,7 @@ endfunction
 "   {opacity}: Preserves opacity value for converting from RGBA
 function! s:OutputHSLA(hsl, ...)
     let opacity = a:0 == 1 ? a:1 : 1
-    let temp_hsl = matchstr(a:hsl, '\vhsl\(.*\)@=') . ', ' . opacity . ');'
+    let temp_hsl = matchstr(a:hsl, '\vhsl\(.*\)@=') . ', ' . opacity . ')'
     return substitute(temp_hsl, '\vhsl', 'hsla', '')
 endfunction
 
@@ -626,15 +659,16 @@ endfunction
 " Args:
 "   from:  the color format we're converting from
 "   to:    the color format we're converting to
-function! s:ReplaceAll(from, to)
-    let lines = getbufline('%', 1, '$')
+function! s:ReplaceAll(from, to, start, end)
+    let lines = getbufline('%', a:start, a:end)
     let regex = ''
-    if a:from == 'hex'
-        let regex = s:HEX_DISCOVERY
-    elseif a:from == 'rgb'
-        let regex = s:RGB_DISCOVERY
-    elseif a:from == 'hsl'
-        let regex = s:HSL
+
+    if     a:from == 'Hex'     | let regex = s:HEX_DISCOVERY
+    elseif a:from == 'Keyword' | let regex = s:W3C_COLOR_RX
+    elseif a:from == 'RGB'     | let regex = s:RGB_DISCOVERY
+    elseif a:from == 'RGBA'    | let regex = s:RGBA
+    elseif a:from == 'HSL'     | let regex = s:HSL
+    elseif a:from == 'HSLA'    | let regex = s:HSLA
     endif
 
     let matchingLines = filter(copy(lines), "v:val =~ regex")
@@ -642,8 +676,9 @@ function! s:ReplaceAll(from, to)
     for line in matchingLines
         let lineNum = index(lines, line) + 1
         let convert = s:ReplacementPairings(a:from, a:to)
+        let from = s:GetCurrentColorFormat(line)
 
-        let replace = substitute(line, convert.from_rx, '\=To' . convert.to . '(submatch(0))', 'g')
+        let replace = substitute(line, convert.from_rx, '\=To' . a:to . '(submatch(0), from)', 'g')
 
         " prevent replacing the first matching line if there are more than one
         " identical color declarations on separate lines
@@ -658,16 +693,38 @@ endfunction
 " s:ReplaceNext: Replaces the next matching color to one in the requested
 "                format in the current buffer.
 " Args:
-"   from: the color format we're converting from
 "   to:   the color format we're converting to
-function! s:ReplaceNext(from, to)
+function! s:ReplaceNext(to)
     let lineNum = line('.')
     let line = getline('.')
-    let convert = s:ReplacementPairings(a:from, a:to)
+    let from = s:GetCurrentColorFormat(line)
+    let convert = s:ReplacementPairings(from, a:to)
 
-    let line = substitute(line, convert.from_rx, '\=To' . convert.to . '(submatch(0))', '')
+    let line = substitute(line, convert.from_rx, '\=To' . a:to . '(submatch(0), from)', '')
 
     call setline(lineNum, line)
+endfunction
+
+
+" -----------------------------------------------------------------------------
+function! s:GetCurrentColorFormat(line)
+    let color = ''
+
+    if match(a:line, s:RGB_DISCOVERY) >= 0
+        let color = matchstr(a:line, s:RGB_DISCOVERY)
+    elseif match(a:line, s:RGBA) >= 0
+        let color = matchstr(a:line, s:RGBA)
+    elseif match(a:line, s:HSL) >= 0
+        let color = matchstr(a:line, s:HSL)
+    elseif match(a:line, s:HSLA) >= 0
+        let color = matchstr(a:line, s:HSLA)
+    elseif match(a:line, s:HEX_DISCOVERY) >= 0
+        let color = matchstr(a:line, s:HEX_DISCOVERY)
+    elseif match(a:line, s:W3C_COLOR_RX) >= 0
+        let color = matchstr(a:line, s:W3C_COLOR_RX)
+    endif
+
+    return s:GetFormat(color)
 endfunction
 
 
@@ -681,13 +738,12 @@ endfunction
 "   to:   the color format we're converting to
 function! s:ReplacementPairings(from, to)
     let pairings = {}
-    let from_rx_mappings = { 'rgb': s:RGB_NUM_RX . '|' . strpart(s:RGB_PERC_RX, 4, strlen(s:RGB_PERC_RX)),
-                           \ 'hsl': s:HSL,
-                           \ 'hex': s:HEX_DISCOVERY,
-                           \ 'keyword': s:W3C_COLOR_RX }
-
-    if a:to == 'hex' | let pairings.to = 'Hex' |
-    \ elseif a:to == 'rgb' || a:to == 'hsl' | let pairings.to = toupper(a:to) | endif
+    let from_rx_mappings = { 'RGB': s:RGB_NUM_RX . '|' . strpart(s:RGB_PERC_RX, 4, strlen(s:RGB_PERC_RX)),
+                           \ 'RGBA': s:RGBA,
+                           \ 'HSL': s:HSL,
+                           \ 'HSLA': s:HSLA,
+                           \ 'Hex': s:HEX_DISCOVERY,
+                           \ 'Keyword': s:W3C_COLOR_RX }
 
     let pairings.from_rx = from_rx_mappings[a:from]
 
