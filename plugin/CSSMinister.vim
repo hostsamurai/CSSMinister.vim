@@ -4,11 +4,8 @@
 " Description:   Easy modification of colors in CSS stylesheets. Change colors
 "                from one format to another. Currently supported formats include
 "                hex, keyword, RGB(A) and HSL(A).
-" Last Modified: January 23, 2012
+" Last Modified: February 04, 2012
 " License:       GPL (see http://www.gnu.org/licenses/gpl.txt)
-"
-" TODO: add commands and get rid of mappings
-" TODO: fix slow execution time when converting one color at a time
 " =============================================================================
 
 " Script init stuff {{{1
@@ -181,63 +178,31 @@ let g:CSSMinisterCreateMappings = 1
 
 
 " Public API {{{1
-" Mappings {{{2
-function! s:CreateMappings(target, mapping)
-    if !hasmapto(a:mapping, 'n')
-        exec 'nmap ' . a:mapping . ' ' . a:target
-    endif
-endfunction
-
-
-if g:CSSMinisterCreateMappings
-   call s:CreateMappings('<Plug>CSSMinisterHexToRGB',        ',xr')
-   call s:CreateMappings('<Plug>CSSMinisterHexToRGBAll',     ',axr')
-   call s:CreateMappings('<Plug>CSSMinisterHexToHSL',        ',xh')
-   call s:CreateMappings('<Plug>CSSMinisterHexToHSLAll',     ',axh')
-   call s:CreateMappings('<Plug>CSSMinisterRGBToHex',        ',rx')
-   call s:CreateMappings('<Plug>CSSMinisterRGBToHexAll',     ',arx')
-   call s:CreateMappings('<Plug>CSSMinisterRGBToHSL',        ',rh')
-   call s:CreateMappings('<Plug>CSSMinisterRGBToHSLAll',     ',arh')
-   call s:CreateMappings('<Plug>CSSMinisterHSLToHex',        ',hx')
-   call s:CreateMappings('<Plug>CSSMinisterHSLToHexAll',     ',ahx')
-   call s:CreateMappings('<Plug>CSSMinisterHSLToRGB',        ',hr')
-   call s:CreateMappings('<Plug>CSSMinisterHSLToRGBAll',     ',ahr')
-   call s:CreateMappings('<Plug>CSSMinisterKeywordToHex',    ',kx')
-   call s:CreateMappings('<Plug>CSSMinisterKeywordToHexAll', ',akx')
-   call s:CreateMappings('<Plug>CSSMinisterKeywordToRGB',    ',kr')
-   call s:CreateMappings('<Plug>CSSMinisterKeywordToRGBAll', ',akr')
-   call s:CreateMappings('<Plug>CSSMinisterKeywordToHSL',    ',kh')
-   call s:CreateMappings('<Plug>CSSMinisterKeywordToHSLAll', ',akh')
-
-   let g:CSSMinisterCreateMappings = 0
+" Configuration variables {{{2
+if !exists("g:CSSMinisterCreateMappings")
+    let g:CSSMinisterCreateMappings = 1
 endif
 
+if !exists("g:CSSMinisterMapPrefix")
+    let g:CSSMinisterMapPrefix = ','
+endif
+"}}}2
 
-noremap <silent> <script> <Plug>CSSMinisterHexToRGB        :call MinisterConvert('hex', 'rgb')<CR>
-noremap <silent> <script> <Plug>CSSMinisterHexToRGBAll     :call MinisterConvert('hex', 'rgb', 'all')<CR>
-noremap <silent> <script> <Plug>CSSMinisterHexToHSL        :call MinisterConvert('hex', 'hsl')<CR>
-noremap <silent> <script> <Plug>CSSMinisterHexToHSLAll     :call MinisterConvert('hex', 'hsl', 'all')<CR>
-noremap <silent> <script> <Plug>CSSMinisterRGBToHex        :call MinisterConvert('rgb', 'hex')<CR>
-noremap <silent> <script> <Plug>CSSMinisterRGBToHexAll     :call MinisterConvert('rgb', 'hex', 'all')<CR>
-noremap <silent> <script> <Plug>CSSMinisterRGBToHSL        :call MinisterConvert('rgb', 'hsl')<CR>
-noremap <silent> <script> <Plug>CSSMinisterRGBToHSLAll     :call MinisterConvert('rgb', 'hsl', 'all')<CR>
-noremap <silent> <script> <Plug>CSSMinisterHSLToHex        :call MinisterConvert('hsl', 'hex')<CR>
-noremap <silent> <script> <Plug>CSSMinisterHSLToHexAll     :call MinisterConvert('hsl', 'hex', 'all')<CR>
-noremap <silent> <script> <Plug>CSSMinisterHSLToRGB        :call MinisterConvert('hsl', 'rgb')<CR>
-noremap <silent> <script> <Plug>CSSMinisterHSLToRGBAll     :call MinisterConvert('hsl', 'rgb', 'all')<CR>
-noremap <silent> <script> <Plug>CSSMinisterKeywordToHex    :call MinisterConvert('keyword', 'hex')<CR>
-noremap <silent> <script> <Plug>CSSMinisterKeywordToHexAll :call MinisterConvert('keyword', 'hex', 'all')<CR>
-noremap <silent> <script> <Plug>CSSMinisterKeywordToRGB    :call MinisterConvert('keyword', 'rgb')<CR>
-noremap <silent> <script> <Plug>CSSMinisterKeywordToRGBAll :call MinisterConvert('keyword', 'rgb', 'all')<CR>
-noremap <silent> <script> <Plug>CSSMinisterKeywordToHSL    :call MinisterConvert('keyword', 'hsl')<CR>
-noremap <silent> <script> <Plug>CSSMinisterKeywordToHSLAll :call MinisterConvert('keyword', 'hsl', 'all')<CR>
+" Mappings {{{2
+if g:CSSMinisterCreateMappings
+   execute "nnoremap <silent> <script> "  g:CSSMinisterMapPrefix . "x"   ":call MinisterConvert('Hex')<CR>"
+   execute "nnoremap <silent> <script> "  g:CSSMinisterMapPrefix . "r"   ":call MinisterConvert('RGB')<CR>"
+   execute "nnoremap <silent> <script> "  g:CSSMinisterMapPrefix . "h"   ":call MinisterConvert('HSL')<CR>"
+   execute "nnoremap <silent> <script> "  g:CSSMinisterMapPrefix . "ra"  ":call MinisterConvert('RGBA')<CR>"
+   execute "nnoremap <silent> <script> "  g:CSSMinisterMapPrefix . "ha"  ":call MinisterConvert('HSLA')<CR>"
+endif
 "}}}2
 
 " Commands {{{2
 com! -range ToHex <line1>,<line2>call MinisterConvert('Hex')
 com! -nargs=1 -range=% ToHexAll <line1>,<line2>call MinisterConvertAll(<q-args>, 'Hex')
 
-com!  -range ToRGB <line1>,<line2>call MinisterConvert('RGB')
+com! -range ToRGB <line1>,<line2>call MinisterConvert('RGB')
 com! -nargs=1 -range=% ToRGBAll <line1>,<line2>call MinisterConvertAll(<q-args>, 'RGB')
 
 com! -range ToRGBA <line1>,<line2>call MinisterConvert('RGBA')
@@ -294,10 +259,10 @@ function! ToRGB(from_color, from_format)
     if format == 'RGBA'
         return substitute(from, s:RGBA, "rgb(" . submatch(1) . ", " . submatch(2) . ", " . submatch(3) . ")", '')
     elseif format == 'Keyword'
-        let from = ToHex(a:from_color)
+        let from = ToHex(a:from_color, format)
     elseif format == 'HSLA'
-        let from = s:HSLAToRGBA(a:from_color)
-        return ToRGB(from)
+        let from = ToHSL(a:from_color, format)
+        let format = 'HSL'
     endif
 
     return s:{format}ToRGB(from)
@@ -381,7 +346,7 @@ function! ToHex(from_color, from_format)
         let from = s:HSLToRGB(a:from_color)
         let format = 'RGB'
     elseif format =~ '\vRGBA|HSLA'
-        let from = ToRGB(a:from_color)
+        let from = ToRGB(a:from_color, format)
         let format = 'RGB'
     endif
 
@@ -421,18 +386,12 @@ endfunction
 " Args:
 "   color: a string denoting the color to convert
 function! s:GetFormat(color)
-    if s:IsRGB(a:color)
-        return 'RGB'
-    elseif s:IsRGBA(a:color)
-        return 'RGBA'
-    elseif s:IsHex(a:color)
-        return 'Hex'
-    elseif s:IsHSL(a:color)
-        return 'HSL'
-    elseif s:IsHSLA(a:color)
-        return 'HSLA'
-    elseif s:IsKeyword(a:color)
-        return 'Keyword'
+    if s:IsRGB(a:color)         | return 'RGB'
+    elseif s:IsRGBA(a:color)    | return 'RGBA'
+    elseif s:IsHex(a:color)     | return 'Hex'
+    elseif s:IsHSL(a:color)     | return 'HSL'
+    elseif s:IsHSLA(a:color)    | return 'HSLA'
+    elseif s:IsKeyword(a:color) | return 'Keyword'
     endif
 endfunction
 
@@ -707,6 +666,10 @@ endfunction
 
 
 " -----------------------------------------------------------------------------
+" s:GetCurrentColorFormat: Returns the format of a color, given an entire line
+"                          of CSS
+" Args:
+"   line: a line of CSS containing the color to inquire about
 function! s:GetCurrentColorFormat(line)
     let color = ''
 
