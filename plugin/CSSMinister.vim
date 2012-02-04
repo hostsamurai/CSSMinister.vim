@@ -256,10 +256,13 @@ function! ToRGB(from_color, from_format)
     let from = a:from_color
     let format = a:from_format
 
-    if format == 'RGBA'
+    if format == 'RGB'
+        return from
+    elseif format == 'RGBA'
         return substitute(from, s:RGBA, "rgb(" . submatch(1) . ", " . submatch(2) . ", " . submatch(3) . ")", '')
     elseif format == 'Keyword'
         let from = ToHex(a:from_color, format)
+        let format = 'Hex'
     elseif format == 'HSLA'
         let from = ToHSL(a:from_color, format)
         let format = 'HSL'
@@ -275,12 +278,15 @@ function! ToRGBA(from_color, from_format)
     let format = a:from_format
     let from = a:from_color
 
-    if format == 'RGB'
+    if format == 'RGBA'
+        return a:from_color
+    elseif format == 'RGB'
         return s:OutputRGBA(from)
     elseif format == 'HSLA'
         return s:HSLAToRGBA(a:from_color)
     elseif format == 'Keyword'
         let from = s:HexToRGB(s:KeywordToHex(a:from_color))
+        let format = 'RGB'
     elseif format =~ '\vHex|HSL'
         let from = s:{format}ToRGB(from)
     endif
@@ -320,7 +326,9 @@ function! ToHSLA(from_color, from_format)
     let format = a:from_format
     let from = a:from_color
 
-    if format == 'HSL'
+    if format == 'HSLA'
+        return a:from_color
+    elseif format == 'HSL'
         return s:OutputHSLA(a:from_color)
     elseif format == 'RGBA'
         return s:RGBAToHSLA(a:from_color)
@@ -544,7 +552,7 @@ endfunction
 " Args:
 "   rgba: String representing a RGBA color
 function! s:RGBAToHSLA(rgba)
-    let rgb = substitute(a:rgba, s:RGBA, "rgb(" . submatch(1) . "," . submatch(2) . "," . submatch(3) . ")", '')
+    let rgb = substitute(a:rgba, s:RGBA, "rgb(" . submatch(1) . ", " . submatch(2) . ", " . submatch(3) . ")", '')
     let opacity = substitute(matchstr(a:rgba, '\v(\d|0\.\d+)\);?'), '\v\);?', '', '')
     return s:OutputHSLA(s:RGBToHSL(rgb), opacity)
 endfunction
