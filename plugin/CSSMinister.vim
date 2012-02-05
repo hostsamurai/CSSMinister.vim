@@ -4,16 +4,16 @@
 " Description:   Easy modification of colors in CSS stylesheets. Change colors
 "                from one format to another. Currently supported formats include
 "                hex, keyword, RGB(A) and HSL(A).
-" Last Modified: February 04, 2012
-" License:       GPL (see http://www.gnu.org/licenses/gpl.txt)
+" Last Modified: February 05, 2012
+" License:       MIT (see http://www.opensource.org/licenses/MIT)
 " =============================================================================
 
 " Script init stuff {{{1
-"if exists("g:CSSMinister_version") || &cp
-    "finish
-"endif
+if exists("g:CSSMinister_version") || &cp
+    finish
+endif
 
-let g:CSSMinister_version = "0.2.1"
+let g:CSSMinister_version = "1.0.0"
 
 " Constants {{{1
 let s:RGB_NUM_RX    = '\v\crgb\(([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5])\)'
@@ -184,7 +184,7 @@ if !exists("g:CSSMinisterCreateMappings")
 endif
 
 if !exists("g:CSSMinisterMapPrefix")
-    let g:CSSMinisterMapPrefix = ','
+    let g:CSSMinisterMapPrefix = '<leader>'
 endif
 "}}}2
 
